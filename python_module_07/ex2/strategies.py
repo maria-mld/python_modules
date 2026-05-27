@@ -6,6 +6,7 @@ from ex1 import HealCapability, TransformCapability
 class InvalidStrategyError(Exception):
     pass
 
+
 class BattleStrategy(ABC):
     @abstractmethod
     def is_valid(self, creature: Creature) -> bool:
@@ -19,7 +20,7 @@ class BattleStrategy(ABC):
 class NormalStrategy(BattleStrategy):
     def is_valid(self, creature) -> bool:
         return True
-    
+
     def act(self, creature: Creature) -> str:
         if not self.is_valid(creature):
             raise InvalidStrategyError(
@@ -29,20 +30,17 @@ class NormalStrategy(BattleStrategy):
 
 
 class AggressiveStrategy(BattleStrategy):
-    """Агрессивная стратегия: только для трансформеров."""
-
     def is_valid(self, creature: Creature) -> bool:
         return isinstance(creature, TransformCapability)
 
     def act(self, creature: Creature) -> str:
         if not self.is_valid(creature):
             raise InvalidStrategyError(
-                f"Invalid Creature '{creature.name}' for this aggressive strategy"
+                f"Invalid Creature '{creature.name}' "
+                "for this aggressive strategy"
             )
-        # Так как mypy должен быть уверен, что методы существуют,
-        # делаем явное приведение/проверку, хотя мы уже проверили в is_valid
         assert isinstance(creature, TransformCapability)
-        
+
         t_start = creature.transform()
         attack = creature.attack()
         t_end = creature.revert()
@@ -50,7 +48,6 @@ class AggressiveStrategy(BattleStrategy):
 
 
 class DefensiveStrategy(BattleStrategy):
-    """Защитная стратегия: только для целителей."""
 
     def is_valid(self, creature: Creature) -> bool:
         return isinstance(creature, HealCapability)
@@ -58,10 +55,11 @@ class DefensiveStrategy(BattleStrategy):
     def act(self, creature: Creature) -> str:
         if not self.is_valid(creature):
             raise InvalidStrategyError(
-                f"Invalid Creature '{creature.name}' for this defensive strategy"
+                f"Invalid Creature '{creature.name}' "
+                "for this defensive strategy"
             )
         assert isinstance(creature, HealCapability)
-        
+
         attack = creature.attack()
         heal = creature.heal()
         return f"{attack}\n{heal}"

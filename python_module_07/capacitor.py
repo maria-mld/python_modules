@@ -34,7 +34,7 @@ def test_transform() -> None:
             print(creature.transform())
             print(creature.attack())
             print(creature.revert())
-    
+
     print("base:")
     run_sequence(factory.create_base())
 

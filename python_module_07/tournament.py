@@ -11,17 +11,21 @@ from ex2 import (
 
 
 def run_tournament(
-    tournament_name: str, 
+    tournament_name: str,
     opponents: List[Tuple[CreatureFactory, BattleStrategy]]
 ) -> None:
     print(f"{tournament_name}")
     names = []
     for f, s in opponents:
-        f_name = f.__class__.__name__.replace("Factory", "").replace("Creature", "")
+        f_name = (
+            f.__class__.__name__
+            .replace("Factory", "")
+            .replace("Creature", "")
+        )
         s_name = s.__class__.__name__.replace("Strategy", "")
         names.append(f"({f_name}+{s_name})")
     print(f"[ {', '.join(names)} ]")
-    
+
     print("*** Tournament ***")
     print(f"{len(opponents)} opponents involved")
 
@@ -47,6 +51,7 @@ def run_tournament(
                 print(f"Battle error, aborting tournament: {e}")
                 return
 
+
 def main() -> None:
     flame_f = FlameFactory()
     aqua_f = AquaFactory()
@@ -57,7 +62,6 @@ def main() -> None:
     aggressive_s = AggressiveStrategy()
     defensive_s = DefensiveStrategy()
 
-    # Турнир 0 (Базовый)
     t0_opponents = [
         (flame_f, normal_s),
         (heal_f, defensive_s)
@@ -65,15 +69,13 @@ def main() -> None:
     run_tournament("Tournament 0 (basic)", t0_opponents)
     print()
 
-    # Турнир 1 (С ошибкой)
     t1_opponents = [
-        (flame_f, aggressive_s),  # Ошибка! Flameling не умеет трансформироваться
+        (flame_f, aggressive_s),
         (heal_f, defensive_s)
     ]
     run_tournament("Tournament 1 (error)", t1_opponents)
     print()
 
-    # Турнир 2 (Множественный)
     t2_opponents = [
         (aqua_f, normal_s),
         (heal_f, defensive_s),
