@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, List, Dict
+from typing import Any, Union, List, Dict, Tuple
 
 
 class DataProcessor(ABC):
     def __init__(self) -> None:
-        self._storage: List[tuple[int, str]] = []
+        self._storage: List[Tuple[int, str]] = []
         self._counter: int = 0
-        # Добавляем имя класса для красивого вывода статистики
         self.name: str = self.__class__.__name__
 
     @abstractmethod
@@ -17,19 +16,17 @@ class DataProcessor(ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) -> tuple[int, str]:
+    def output(self) -> Tuple[int, str]:
         if not self._storage:
             raise IndexError("No data available in the processor")
         return self._storage.pop(0)
 
     @property
     def remaining(self) -> int:
-        """Возвращает количество элементов, оставшихся в буфере."""
         return len(self._storage)
 
     @property
     def total_processed(self) -> int:
-        """Возвращает общее количество обработанных элементов."""
         return self._counter
 
 
@@ -115,17 +112,13 @@ class LogProcessor(DataProcessor):
 
 
 class DataStream:
-    """Управляющий класс потока данных."""
-
     def __init__(self) -> None:
         self._processors: List[DataProcessor] = []
 
     def register_processor(self, proc: DataProcessor) -> None:
-        """Регистрирует новый процессор в системе."""
         self._processors.append(proc)
 
-    def process_stream(self, stream: list[Any]) -> None:
-        """Анализирует каждый элемент и отправляет его в нужный процессор."""
+    def process_stream(self, stream: List[Any]) -> None:
         for element in stream:
             handled = False
             for processor in self._processors:
@@ -140,30 +133,19 @@ class DataStream:
                 )
 
     def print_processors_stats(self) -> None:
-
         print("== DataStream statistics ==")
         if not self._processors:
             print("No processor found, no data")
             return
 
         for proc in self._processors:
-            # Превращаем имя 'NumericProcessor' в красивое 'Numeric Processor'
-            friendly_name = proc.name.replace("Processor", "Processor")
-            # Добавим пробел перед словом Processor для соответствия ТЗ
-            if "Numeric" in friendly_name:
-                friendly_name = "Numeric Processor"
-            elif "Text" in friendly_name:
-                friendly_name = "Text Processor"
-            elif "Log" in friendly_name:
-                friendly_name = "Log Processor"
-
+            friendly_name = proc.name.replace("Processor", " Processor")
             print(
                 f"{friendly_name}: total {proc.total_processed} items "
                 f"processed, remaining {proc.remaining} on processor"
             )
 
 
-# --- Тестовый сценарий по ТЗ ---
 if __name__ == "__main__":
     print("=== Code Nexus - Data Stream ===")
     print("Initialize Data Stream...")
@@ -174,7 +156,6 @@ if __name__ == "__main__":
     num_processor = NumericProcessor()
     stream_manager.register_processor(num_processor)
 
-    # Наш батч данных из примера
     batch = [
         "Hello world",
         [3.14, -1, 2.71],
@@ -189,11 +170,12 @@ if __name__ == "__main__":
         ["Hi", "five"],
     ]
 
-    print("Send first batch of data on stream: "
-          "['Hello world', [3.14, -1, 2.71], [{'log_level': 'WARNING', "
-          "'log_message': 'Telnet access! Use ssh instead'}, "
-          "{'log_level': 'INFO', 'log_message': 'User wil is connected'}], "
-          "42, ['Hi', 'five']]\n")
+    print(
+        "Send first batch of data on stream: ['Hello world', "
+        "[3.14, -1, 2.71], [{'log_level': 'WARNING', 'log_message': "
+        "'Telnet access! Use ssh instead'}, {'log_level': 'INFO', "
+        "'log_message': 'User wil is connected'}], 42, ['Hi', 'five']]"
+    )
 
     stream_manager.process_stream(batch)
     stream_manager.print_processors_stats()
@@ -208,9 +190,10 @@ if __name__ == "__main__":
     stream_manager.process_stream(batch)
     stream_manager.print_processors_stats()
 
-    print("Consume some elements from the data processors: "
-          "Numeric 3, Text 2, Log 1")
-    # Извлекаем элементы
+    print(
+        "Consume some elements from the data processors: "
+        "Numeric 3, Text 2, Log 1"
+    )
     for _ in range(3):
         num_processor.output()
     for _ in range(2):

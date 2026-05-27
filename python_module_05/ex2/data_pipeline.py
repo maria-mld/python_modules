@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, List, Dict, Protocol
+from typing import Any, Union, List, Dict, Tuple, Protocol
 
 
 class DataProcessor(ABC):
     def __init__(self) -> None:
-        self._storage: List[tuple[int, str]] = []
+        self._storage: List[Tuple[int, str]] = []
         self._counter: int = 0
         self.name: str = self.__class__.__name__
 
@@ -16,7 +16,7 @@ class DataProcessor(ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) -> tuple[int, str]:
+    def output(self) -> Tuple[int, str]:
         if not self._storage:
             raise IndexError("No data available in the processor")
         return self._storage.pop(0)
@@ -111,31 +111,24 @@ class LogProcessor(DataProcessor):
             self._counter += 1
 
 
-# --- Добавляем систему плагинов через Protocol ---
-
 class ExportPlugin(Protocol):
-    """Интерфейс протокола для плагинов экспорта (Duck Typing)."""
-    def process_output(self, data: List[tuple[int, str]]) -> None:
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
         ...
 
 
 class CSVExportPlugin:
-    """Плагин для ручной сборки CSV строки."""
-    def process_output(self, data: List[tuple[int, str]]) -> None:
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
         if not data:
             return
-        # Извлекаем только значения (строки) и соединяем через запятую
         csv_string = ",".join(val for _, val in data)
         print("CSV Output:")
         print(csv_string)
 
 
 class JSONExportPlugin:
-    """Плагин для ручной сборки JSON строки (формат {"item_X": "значение"})."""
-    def process_output(self, data: List[tuple[int, str]]) -> None:
+    def process_output(self, data: List[Tuple[int, str]]) -> None:
         if not data:
             return
-        # Собираем пары ключ-значение вручную, сохраняя ранг (индекс) элемента
         pairs = [f'"item_{rank}": "{val}"' for rank, val in data]
         json_string = "{" + ", ".join(pairs) + "}"
         print("JSON Output:")
@@ -149,7 +142,7 @@ class DataStream:
     def register_processor(self, proc: DataProcessor) -> None:
         self._processors.append(proc)
 
-    def process_stream(self, stream: list[Any]) -> None:
+    def process_stream(self, stream: List[Any]) -> None:
         for element in stream:
             handled = False
             for processor in self._processors:
@@ -164,9 +157,8 @@ class DataStream:
                 )
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
-        """Потребляет по nb элементов из каждого процессора и экспортирует."""
         for processor in self._processors:
-            collected_data: List[tuple[int, str]] = []
+            collected_data: List[Tuple[int, str]] = []
             for _ in range(nb):
                 try:
                     item = processor.output()
@@ -183,21 +175,13 @@ class DataStream:
             return
 
         for proc in self._processors:
-            friendly_name = proc.name
-            if "Numeric" in friendly_name:
-                friendly_name = "Numeric Processor"
-            elif "Text" in friendly_name:
-                friendly_name = "Text Processor"
-            elif "Log" in friendly_name:
-                friendly_name = "Log Processor"
-
+            friendly_name = proc.name.replace("Processor", " Processor")
             print(
                 f"{friendly_name}: total {proc.total_processed} items "
                 f"processed, remaining {proc.remaining} on processor"
             )
 
 
-# --- Тестовый сценарий согласно Example ---
 if __name__ == "__main__":
     print("=== Code Nexus - Data Pipeline ===")
     print("Initialize Data Stream...")
@@ -212,7 +196,6 @@ if __name__ == "__main__":
     pipeline.register_processor(text_proc)
     pipeline.register_processor(log_proc)
 
-    # Первый батч данных
     batch_1 = [
         "Hello world",
         [3.14, -1, 2.71],
@@ -225,12 +208,10 @@ if __name__ == "__main__":
         ["Hi", "five"]
     ]
 
-    print("Send first batch of data on stream:"
-          "['Hello world', [3.14, -1, 2.71], "
-          "[{'log_level': 'WARNING', 'log_message':"
-          "'Telnet access! Use ssh instead'}, "
-          "{'log_level': 'INFO', 'log_message': "
-          "'User wil is connected'}], 42, ['Hi', 'five']]\n")
+    print("Send first batch of data on stream: ['Hello world', "
+          "[3.14, -1, 2.71], [{'log_level': 'WARNING', 'log_message': "
+          "'Telnet access! Use ssh instead'}, {'log_level': 'INFO', "
+          "'log_message': 'User wil is connected'}], 42, ['Hi', 'five']]\n")
 
     pipeline.process_stream(batch_1)
     pipeline.print_processors_stats()
@@ -240,7 +221,6 @@ if __name__ == "__main__":
     pipeline.output_pipeline(3, csv_plugin)
     pipeline.print_processors_stats()
 
-    # Второй батч данных
     batch_2 = [
         21,
         ["I love AI", "LLMs are wonderful", "Stay healthy"],

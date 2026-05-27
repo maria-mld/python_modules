@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, List, Dict
+from typing import Any, Union, List, Dict, Tuple
 
 
 class DataProcessor(ABC):
     def __init__(self) -> None:
-        self._storage: List[tuple[int, str]] = []
+        self._storage: List[Tuple[int, str]] = []
         self._counter: int = 0
 
     @abstractmethod
@@ -15,7 +15,7 @@ class DataProcessor(ABC):
     def ingest(self, data: Any) -> None:
         pass
 
-    def output(self) -> tuple[int, str]:
+    def output(self) -> Tuple[int, str]:
         if not self._storage:
             raise IndexError("No data available in the processor")
         return self._storage.pop(0)
@@ -42,13 +42,12 @@ class NumericProcessor(DataProcessor):
             for item in data:
                 self._storage.append((self._counter, str(item)))
                 self._counter += 1
-        else:
-            self._storage.append((self._counter, str(data)))
-            self._counter += 1
+            else:
+                self._storage.append((self._counter, str(item)))
+                self._counter += 1
 
 
 class TextProcessor(DataProcessor):
-
     def validate(self, data: Any) -> bool:
         if isinstance(data, str):
             return True
@@ -70,7 +69,6 @@ class TextProcessor(DataProcessor):
 
 
 class LogProcessor(DataProcessor):
-
     def validate(self, data: Any) -> bool:
         def is_valid_log(d: Any) -> bool:
             if not isinstance(d, dict):
@@ -96,8 +94,8 @@ class LogProcessor(DataProcessor):
             return f"{level}: {message}"
 
         if isinstance(data, list):
-            for item in data:
-                self._storage.append((self._counter, format_log(item)))
+            for x in data:
+                self._storage.append((self._counter, format_log(x)))
                 self._counter += 1
         else:
             self._storage.append((self._counter, format_log(data)))
@@ -127,7 +125,6 @@ if __name__ == "__main__":
         rank, val = num_proc.output()
         print(f"Numeric value {rank}: {val}")
 
-    # 2. Тестируем Text Processor
     print("\nTesting Text Processor...")
     text_proc = TextProcessor()
     print(f"Trying to validate input '42': {text_proc.validate(42)}")
@@ -140,7 +137,6 @@ if __name__ == "__main__":
     rank, val = text_proc.output()
     print(f"Text value {rank}: {val}")
 
-    # 3. Тестируем Log Processor
     print("\nTesting Log Processor...")
     log_proc = LogProcessor()
     print(f"Trying to validate input 'Hello': {log_proc.validate('Hello')}")
