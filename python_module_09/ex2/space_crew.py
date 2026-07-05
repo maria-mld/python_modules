@@ -38,7 +38,8 @@ class SpaceMission(BaseModel):
         if not self.mission_id.startswith("M"):
             raise ValueError('Mission ID must start with "M"')
 
-        if not any(m.rank in (Rank.COMMANDER, Rank.CAPTAIN) for m in self.crew):
+        if not any(m.rank in
+                   (Rank.COMMANDER, Rank.CAPTAIN) for m in self.crew):
             raise ValueError("Need at least one Commander or Captain")
 
         if self.duration_days > 365:

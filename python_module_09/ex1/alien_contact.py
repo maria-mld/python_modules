@@ -28,12 +28,17 @@ class AlienContact(BaseModel):
             raise ValueError('Contact ID must start with "AC"')
         if self.contact_type == ContactType.physical and not self.is_verified:
             raise ValueError('Physical contact reports must be verified')
-        if self.contact_type == ContactType.telepatic and self.witness_count < 3:
-            raise ValueError('Telepathic contact requires at least 3 witnesses')
+        if (self.contact_type == ContactType.telepatic
+                and self.witness_count < 3):
+            raise ValueError(
+                'Telepathic contact requires at least 3 witnesses'
+                )
         if self.signal_strength > 7.0 and not self.message_received:
-            raise ValueError('Strong signals (> 7.0) should include received messages')
+            raise ValueError(
+                'Strong signals (> 7.0) should include received messages'
+                )
         return self
-    
+
     def __str__(self) -> str:
         return (
             f"ID: {self.contact_id}\n"
@@ -44,6 +49,7 @@ class AlienContact(BaseModel):
             f"Witnesses: {self.witness_count}\n"
             f"Message: {self.message_received}"
         )
+
 
 def main() -> None:
     print("Alien Contact Log Validation")
@@ -83,4 +89,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
